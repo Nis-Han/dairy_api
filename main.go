@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nerd500/diary_api/controller"
 	"github.com/nerd500/diary_api/database"
+	"github.com/nerd500/diary_api/middleware"
 	"github.com/nerd500/diary_api/model"
 )
 
@@ -35,6 +36,11 @@ func serveApplication() {
 	publicRoutes := router.Group("/auth")
 	publicRoutes.POST("/register", controller.Register)
 	publicRoutes.POST("/login", controller.Login)
+
+	protectedRoutes := router.Group("/api")
+	protectedRoutes.Use(middleware.JWTAuthMiddleware())
+	protectedRoutes.POST("/entry", controller.AddEntry)
+	protectedRoutes.GET("/entry", controller.GetAllEntries)
 
 	router.Run(":8000")
 }
