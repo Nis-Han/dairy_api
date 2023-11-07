@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/nerd500/diary_api/helper"
 	"github.com/nerd500/diary_api/model"
 )
@@ -35,7 +38,15 @@ func Login(context *gin.Context) {
 	var input model.AuthenticationInput
 
 	if err := context.ShouldBindJSON(&input); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var errorMessage string
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
+			validationError := validationErrors[0]
+			if validationError.Tag() == "required" {
+				errorMessage = fmt.Sprintf("%s not provided", validationError.Field())
+			}
+		}
+		context.JSON(http.StatusBadRequest, gin.H{"error": errorMessage})
 		return
 	}
 
